@@ -33,6 +33,9 @@ for f in supabase/migrations/*.sql; do
   if ! out=$($PSQL -f "$src" 2>&1); then echo "FAILED $b"; echo "$out" | grep -iv "^notice" | head -20; exit 1; fi
 done
 
+echo "==> 10_grants.sql"
+$PSQL -f db/neon/10_grants.sql >/dev/null
+
 echo "==> 20_servant_auth.sql"
 $PSQL -f db/neon/20_servant_auth.sql >/dev/null
 

@@ -33,6 +33,25 @@ do $$ begin
   if not exists (select 1 from pg_roles where rolname='service_role') then create role service_role nologin; end if;
 end $$;
 
+-- ---------- BASELINE grants, applied BEFORE the app schema ----------
+-- CRITICAL ORDERING: Supabase granted anon/authenticated broad table access at
+-- project init and RLS was the gate; the migrations then REVOKE specifics
+-- (184 revoke statements — e.g. person_credentials, *_password RPCs, admin_*,
+-- app_bootstrap, token columns). We set these as DEFAULT PRIVILEGES *first*,
+-- so every object the migrations create inherits the grant AND each migration's
+-- explicit revoke takes final effect. Granting AFTER the migrations would
+-- clobber those 184 revokes (a security regression). The owner role doing the
+-- build is detected at runtime so the default privileges attach to the right
+-- grantor.
+do $$
+declare r text := current_user;
+begin
+  execute format('alter default privileges for role %I in schema public grant all on tables to anon, authenticated', r);
+  execute format('alter default privileges for role %I in schema public grant all on sequences to anon, authenticated', r);
+  execute format('alter default privileges for role %I in schema public grant execute on functions to anon, authenticated', r);
+end $$;
+grant usage on schema public to anon, authenticated;
+
 -- ---------- realtime publication (D4: no realtime provider yet) ----------
 -- Migrations do `alter publication supabase_realtime add table …`; create an
 -- EMPTY publication so those succeed. Nothing consumes it (refetch-on-focus).
