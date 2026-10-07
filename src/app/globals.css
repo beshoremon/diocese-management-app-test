@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  overscroll-behavior-y: none;
+}
+
+/* Slide-up animation for bottom sheets / numpad */
+@keyframes slideUp {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Hide scrollbar but keep scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-2xl shadow-card border border-indigo-50 p-4;
+  }
+  .btn-primary {
+    @apply bg-gradient-to-l from-primary-600 to-primary-500 text-white font-bold rounded-xl px-4 py-3 shadow-md hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-white text-primary-700 border border-primary-200 font-bold rounded-xl px-4 py-3 hover:bg-primary-50 active:scale-[0.98] transition;
+  }
+  .input-field {
+    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none transition placeholder:text-slate-400;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold;
+  }
+  /* Tappable badge — round-square (squircle-like) button that opens a log */
+  .badge-btn {
+    @apply inline-flex h-8 min-w-[3.25rem] items-center justify-center gap-1 rounded-lg px-2.5 text-xs font-extrabold shadow-sm ring-1 ring-black/5 transition active:scale-95;
+  }
+  /* Child-card badge row: the 4 badges (status · call feedback · attendance
+     · points) in ONE row at the bottom of the card, distributed evenly —
+     every cell the same width / height / shape */
+  .badge-row {
+    @apply mt-2.5 grid w-full grid-cols-4 gap-1.5;
+  }
+  .badge-row > * {
+    @apply w-full min-w-0 !px-1 !gap-1 text-[11px] tracking-tight;
+  }
+  .badge-row > * > svg {
+    @apply shrink-0;
+  }
+  /* Running number in the card's top corner — follows the CURRENT view
+     (filters + sort): 1 = first card on screen */
+  .card-num {
+    @apply absolute top-0 start-0 z-[1] flex h-[1.375rem] min-w-[1.75rem] items-center justify-center rounded-ee-xl bg-slate-800 px-2 text-[11px] font-extrabold tabular-nums text-white shadow-sm;
+  }
+}

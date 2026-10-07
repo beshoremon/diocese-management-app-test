@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+build/
+
+# Env
+.env
+.env.local
+.env*.local
+
+# Vercel
+.vercel
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# PM2
+.pm2/
+pids/
+
+# Misc
+.DS_Store
+*.pem
+*.tsbuildinfo
+next-env.d.ts
+
+# Backups
+*.backup
+*.bak
+*.tar.gz
+.preview/
+core
+
+# Cloudflare (OpenNext / wrangler)
+.open-next/
+.wrangler/
+.dev.vars
+cloudflare-env.d.ts
