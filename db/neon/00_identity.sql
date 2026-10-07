@@ -95,6 +95,41 @@ language sql stable as $$ select app.role() $$;
 
 grant usage on schema auth to anon, authenticated, service_role;
 
+-- =====================================================================
+-- storage  — compatibility stubs (Phase 2 replaces with Vercel Blob)
+-- =====================================================================
+-- The application schema creates 3 storage buckets and 22 RLS policies on
+-- storage.objects to authorize uploads. Storage migration is Phase 2 (D3 →
+-- Vercel Blob), but the schema must LOAD now, so we create minimal, inert
+-- storage objects. These tables are NOT used at runtime after Phase 2 (the
+-- app uploads via a server-side Blob abstraction); they exist only so the
+-- historical bucket inserts + policies apply cleanly.
+create schema if not exists storage;
+
+create table if not exists storage.buckets (
+  id text primary key, name text, public boolean default false,
+  created_at timestamptz default now()
+);
+create table if not exists storage.objects (
+  id uuid primary key default gen_random_uuid(),
+  bucket_id text references storage.buckets(id),
+  name text,
+  owner uuid,
+  metadata jsonb,
+  created_at timestamptz default now()
+);
+alter table storage.objects enable row level security;
+
+-- Supabase's storage.foldername(name) → text[] of the path segments except the
+-- last (used by the anon-write-restricted policies, e.g. child-requests/).
+create or replace function storage.foldername(name text) returns text[]
+language sql immutable as $$
+  select (string_to_array(name, '/'))[1 : greatest(array_length(string_to_array(name, '/'), 1) - 1, 0)]
+$$;
+
+grant usage on schema storage to anon, authenticated, service_role;
+comment on schema storage is 'Compatibility stub for Supabase Storage policies; replaced at runtime by Vercel Blob in Phase 2 (D3).';
+
 -- auth.users — now a PLAIN owned table: the servant login account.
 -- `encrypted_password` carries the bcrypt hash imported from Supabase during
 -- data migration. No Supabase Auth server involved any more.
