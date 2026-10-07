@@ -92,11 +92,14 @@ export async function withUser<T>(
   const client: PoolClient = await getPool().connect();
   try {
     await client.query('begin');
+    // Set identity FIRST, while still the privileged app connection role that
+    // may execute app.set_user (it is revoked from authenticated/anon). The GUC
+    // written by set_config(..., true) is transaction-local and survives the
+    // subsequent SET LOCAL ROLE.
+    await client.query('select app.set_user($1::uuid, $2)', [uid, role]);
+    // THEN drop to the RLS role so policies `to authenticated`/`to anon` apply.
     // SET LOCAL ROLE cannot be parameterized → role is a fixed allowlist value.
     await client.query(`set local role ${role}`);
-    // app.set_user does SET LOCAL of request.jwt.claim.sub/.role that
-    // app.uid()/auth.uid() read.
-    await client.query('select app.set_user($1::uuid, $2)', [uid, role]);
 
     const session: DbSession = {
       query: (text, params = []) => client.query(text, params as unknown[]),

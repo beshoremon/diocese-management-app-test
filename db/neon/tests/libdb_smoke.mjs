@@ -15,8 +15,11 @@ async function withUser(uid, role, cb) {
   const c = await pool.connect();
   try {
     await c.query('begin');
-    await c.query(`set local role ${role}`);
+    // set identity FIRST (while still the privileged app role that may execute
+    // app.set_user), THEN drop to the RLS role. The GUC set by set_config(...,
+    // true) is tx-local and survives SET ROLE.
     await c.query('select app.set_user($1::uuid, $2)', [uid, role]);
+    await c.query(`set local role ${role}`);
     const out = await cb(c);
     await c.query('commit');
     return out;
